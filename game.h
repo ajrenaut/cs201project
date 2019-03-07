@@ -3,19 +3,19 @@
 #include <string.h>
 #include <stdbool.h>
 
-typedef struct node {
+typedef struct _node {
 	bool isEmpty;
 	bool isRed;
 	bool isBlue;
 
-	struct Node *top;
-	struct Node *topRight;
-	struct Node *right;
-	struct Node *botRight;
-	struct Node *bottom;
-	struct Node *botLeft;
-	struct Node *left;
-	struct Node *topLeft;
+	struct _node *top;
+	struct _node *topRight;
+	struct _node *right;
+	struct _node *botRight;
+	struct _node *bottom;
+	struct _node *botLeft;
+	struct _node *left;
+	struct _node *topLeft;
 } Node;
 
 // Node functions
@@ -23,6 +23,8 @@ Node *createNode();
 
 // Game functions
 void startgame();
-void playerturn();
-void aiturn();
-void endgame();
+//void playerturn(int playerNum, Node *board);
+//void aiturn(Node *board);
+//void endgame();
+Node *buildBoard(int, int);
+void testBoard(Node*);
