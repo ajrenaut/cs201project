@@ -1,5 +1,5 @@
-#include <"game.h">
-#include <"ai.h">
+#include "game.h"
+#include "ai.h"
 
 int main() {
 	startgame();
