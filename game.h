@@ -22,7 +22,7 @@ typedef struct _node {
 Node *createNode();
 
 // Game functions
-void startgame();
+void runGame();
 //void playerturn(int playerNum, Node *board);
 //void aiturn(Node *board);
 //void endgame();

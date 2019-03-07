@@ -18,13 +18,41 @@
 	return newNode;
 }
 
-void startgame() {
-	int boardWidth, boardHeight;
+void runGame() {
+
+	int boardWidth, boardHeight, gameMode;
+	enum { VS_AI = 1, VS_PLAYER = 2 };
 	Node *board;
-	printf("Enter width and height:");
+	printf("Welcome to Connect Four! Please select game mode.\n");
+	printf("For 1 player versus AI, type 1. For player versus player, type 2.\n");
+	printf("Game type: ");
+	scanf("%d", &gameMode);
+	while(gameMode!= VS_AI || gameMode != VS_PLAYER) {
+		printf("Answer not recognized. Please enter 1 for vs. AI, or 2 for vs. another player.\n");
+		printf("Game type: ");
+		scanf("%d", &gameMode);
+	}
+	printf("Okay! Please enter board dimensions: \n");
+	printf("Board width: ");
 	scanf("%d", &boardWidth);
+	printf("Board height: ");
 	scanf("%d", &boardHeight);
+
+	printf("\nAlright! Looks like you'll be playing against ");
+	switch (gameMode) {
+		case VS_AI :
+			printf("the AI.");
+			break;
+		case VS_PLAYER :
+			printf("another player.");
+			break;
+	}
+	printf("\nThe board will be %d x %d.", boardWidth, boardHeight);
+	//printf("\nIs all of that correct?");
+	//printf("\nY/N: ");
+
 	board = buildBoard(boardWidth, boardHeight);
+
 
 	// testBoard(board);
 

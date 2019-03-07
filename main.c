@@ -2,6 +2,6 @@
 #include "ai.h"
 
 int main() {
-	startgame();
+	runGame();
 	return 0;
 }
