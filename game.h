@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 typedef struct _node {
-	bool isEmpty;
-	bool isRed;
-	bool isBlue;
+	int status;
 
 	struct _node *top;
 	struct _node *topRight;
@@ -23,8 +20,8 @@ Node *createNode();
 
 // Game functions
 void runGame();
-//void playerturn(int playerNum, Node *board);
-//void aiturn(Node *board);
+void takeTurn(int, int, Node*);
 //void endgame();
 Node *buildBoard(int, int);
 void testBoard(Node*);
+void printBoard(Node*);

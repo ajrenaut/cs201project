@@ -1,10 +1,9 @@
 #include "game.h"
+#include "enums.h"
 
  Node *createNode() {
 	Node *newNode = malloc(sizeof(Node));
-	newNode->isEmpty = true;
-	newNode->isRed = false;
-	newNode->isBlue = false;
+	newNode->status = EMPTY;
 
 	newNode->top = NULL;
 	newNode->topRight = NULL;
@@ -21,40 +20,43 @@
 void runGame() {
 
 	int boardWidth, boardHeight, gameMode;
-	enum { VS_AI = 1, VS_PLAYER = 2 };
+	int playerOne, playerTwo;
 	Node *board;
+
 	printf("Welcome to Connect Four! Please select game mode.\n");
-	printf("For 1 player versus AI, type 1. For player versus player, type 2.\n");
-	printf("Game type: ");
+	printf("Enter 1 to play against the AI, or 2 to play against another player.");
+	printf("Game mode: ");
 	scanf("%d", &gameMode);
-	while(gameMode!= VS_AI || gameMode != VS_PLAYER) {
-		printf("Answer not recognized. Please enter 1 for vs. AI, or 2 for vs. another player.\n");
-		printf("Game type: ");
-		scanf("%d", &gameMode);
+	playerOne = PLAYER;
+	switch gameMode {
+	case VS_AI :
+		playerTwo = AI;
+		break;
+	case VS_PLAYER :
+		playerTwo = PLAYER;
+		break;
 	}
+
 	printf("Okay! Please enter board dimensions: \n");
 	printf("Board width: ");
 	scanf("%d", &boardWidth);
 	printf("Board height: ");
 	scanf("%d", &boardHeight);
-
-	printf("\nAlright! Looks like you'll be playing against ");
-	switch (gameMode) {
-		case VS_AI :
-			printf("the AI.");
-			break;
-		case VS_PLAYER :
-			printf("another player.");
-			break;
-	}
-	printf("\nThe board will be %d x %d.", boardWidth, boardHeight);
-	//printf("\nIs all of that correct?");
-	//printf("\nY/N: ");
+	printf("\nThe board will be %d x %d.\n\n", boardWidth, boardHeight);
 
 	board = buildBoard(boardWidth, boardHeight);
 
+	printBoard(board);
+	int gameStatus = RUNNING;
+	while(gameStatus == RUNNING) {
+		int turnCounter = 0;
+		if (turnCounter % 2 == 0)
+			takeTurn(RED, playerOne, board);
+		else if (turnCounter % 2 == 1) {
+			takeTurn(BLUE, playerTwo, board);
+		}
+	}
 
-	// testBoard(board);
 
 }
 
@@ -99,18 +101,41 @@ Node* buildBoard(int width, int height) {
 	return bottomLeftNode;
 }
 
-/* void testBoard(Node *board) {
-	int widthCount = 0, heightCount = 0;
-	for (Node *curRow = board ; curRow != NULL ; curRow = curRow->top) {
+void printBoard(Node *board) {
+	Node *topLeft = board;
+	while (topLeft->top) {
+		topLeft = topLeft->top;
+	}
+	for (Node *curRow = topLeft; curRow != NULL ; curRow = curRow->bottom) {
+		printf("|");
 		for (Node *curNode = curRow; curNode != NULL; curNode = curNode->right) {
-			printf("%d,%d | ", widthCount, heightCount);
-			widthCount++;
+			switch (curNode->status) {
+				case EMPTY:
+					printf(" O |");
+					break;
+				case RED:
+					printf("(R)|");
+					break;
+				case BLUE:
+					printf("(B)|");
+					break;
+			}
 		}
 		printf("\n\n");
-		heightCount++;
-		widthCount = 0;
 	}
-
+	printf("\n\n");
 
 	return;
-} */
+}
+
+int takeTurn(int color, int playerType, Node *board) {
+	switch (playerType) {
+	case PLAYER :
+		// TODO: Player Turn steps
+		break;
+	case AI :
+		// TODO: AI Turn Steps
+		break;
+	}
+	return RUNNING;
+}
