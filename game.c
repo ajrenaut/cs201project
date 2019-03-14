@@ -31,7 +31,7 @@ void runGame() {
 	printf("Game mode: ");
 	scanf("%d", &gameMode);
 	playerOne = PLAYER;
-	switch gameMode {
+	switch (gameMode) {
 	case VS_AI :
 		playerTwo = AI;
 		break;
@@ -49,18 +49,30 @@ void runGame() {
 
 	board = buildBoard(boardWidth, boardHeight);
 
-	printBoard(board);
+	printBoard(board, boardWidth);
 	int gameStatus = RUNNING;
+	int turnCounter = 0;
 	while(gameStatus == RUNNING) {
-		int turnCounter = 0;
-		if (turnCounter % 2 == 0)
-			takeTurn(RED, playerOne, board);
-		else if (turnCounter % 2 == 1) {
-			takeTurn(BLUE, playerTwo, board);
+		if (turnCounter % 2 == 0) {
+			gameStatus = takeTurn(RED, playerOne, board, boardWidth);
+			turnCounter++;
 		}
+		else if (turnCounter % 2 == 1) {
+			gameStatus = takeTurn(BLUE, playerTwo, board, boardWidth);
+			turnCounter++;
+		}
+		printBoard(board, boardWidth);
 	}
 
-
+	switch (gameStatus) {
+	case RED_WIN :
+		printf("RED WINS!");
+		break;
+	case BLUE_WIN :
+		printf("BLUE WINS!");
+		break;
+	}
+	return;
 }
 
 Node* buildBoard(int width, int height) {
@@ -137,34 +149,42 @@ void printBoard(Node *board, int width) {
 }
 
 int takeTurn(int color, int playerType, Node *board, int width) {
-	char playerColor[4];
+	char playerColorString[4];
 	switch (color) {
 	case RED :
-		strcpy(playerColor, "RED");
+		strcpy(playerColorString, "RED");
 		break;
 	case BLUE :
-		strcpy(playerColor, "BLUE");
+		strcpy(playerColorString, "BLUE");
 		break;
 	}
-	printf("\n%s's player's turn!", playerColor)
+	printf("\n%s's player's turn!", playerColorString);
 
 	int boardWidth = width;
 	int columnNum = 0;
 	switch (playerType) {
 	case PLAYER :
-		printf("\nEnter a column number between 1 and %d to place a piece.", boardWidth)
+		printf("\nEnter a column number between 1 and %d to place a piece.", boardWidth);
 		printf("\nColumn: ");
-		scanf("%d", columnNum);
+		scanf("%d", &columnNum);
 		while (columnNum < 1 || columnNum > boardWidth) {
 			printf("\n\nERROR: Number must be between 1 and %d. Try again.", boardWidth);
 			printf("Column: ");
-			scanf("%d", columnNum);
+			scanf("%d", &columnNum);
 		}
-		printf("\n%s places a piece in column %d", columnNum);
-		placePiece(board, playerColor, columnNum);
-
-		// Check for victory.
-		// Return GAME OVER if game is won, else break
+		printf("\n%s places a piece in column %d", playerColorString, columnNum);
+		Node *placedPiece = placePiece(board, color, columnNum);
+		int newGameStatus = checkVictory(placedPiece, color);
+		if (newGameStatus == GAME_WON) {
+			switch (color) {
+			case RED :
+				return RED_WIN;
+				break;
+			case BLUE :
+				return BLUE_WIN;
+				break;
+			}
+		}
 		break;
 	case AI :
 		// TODO: AI Turn Steps
@@ -180,7 +200,7 @@ int takeTurn(int color, int playerType, Node *board, int width) {
 	return RUNNING;
 }
 
-void placePiece(Node *board, int color, int column) {
+Node* placePiece(Node *board, int color, int column) {
 	Node *selectedNode = board;
 
 	for (int i = 1; i < column; i++) {
@@ -192,19 +212,18 @@ void placePiece(Node *board, int color, int column) {
 	}
 
 	selectedNode->status = color;
-	return;
+	return selectedNode;
 }
 
 /*
  * Takes a node, the player's color, and
  */
-int probeDirection(Node* inputNode, int color, int direction) {
+int probeDirection(Node* nodeToProbe, int color, int direction) {
 	int numFoundInRow = 1;
-	Node *nodeToProbe = inputNode;
 	Node *currentNode = nodeToProbe;
 	switch (direction) {
-	case right :
-	case left :
+	case RIGHT :
+	case LEFT :
 		while(1) {
 			currentNode = currentNode->right;
 			if (currentNode == NULL) {
@@ -239,24 +258,122 @@ int probeDirection(Node* inputNode, int color, int direction) {
 				}
 		}
 		break;
-	case top:
-	case bottom:
-
+	case TOP:
+	case BOTTOM:
+		while(1) {
+			currentNode = currentNode->bottom;
+			if (currentNode == NULL) {
+				break;
+			}
+			else if (currentNode->status != color) {
+				break;
+			}
+			else if (currentNode->status == color) {
+				numFoundInRow++;
+			}
+			if (numFoundInRow == 4) {
+				return numFoundInRow;
+			}
+		}
 		break;
-	case topLeft:
-	case bottomRight:
-
+	case TOP_LEFT:
+	case BOTTOM_RIGHT:
+		while(1) {
+			currentNode = currentNode->topLeft;
+			if (currentNode == NULL) {
+				break;
+			}
+			else if (currentNode->status != color) {
+				break;
+			}
+			else if (currentNode->status == color) {
+				numFoundInRow++;
+			}
+				if (numFoundInRow == 4) {
+				return numFoundInRow;
+			}
+		}
+		currentNode = nodeToProbe;
+		while(1) {
+			currentNode = currentNode->botRight;
+			if (currentNode == NULL) {
+				break;
+			}
+			else if (currentNode->status != color) {
+				break;
+			}
+			else if (currentNode->status == color) {
+				numFoundInRow++;
+			}
+				if (numFoundInRow == 4) {
+				return numFoundInRow;
+			}
+		}
 		break;
-	case topRight:
-	case bottomLeft:
-
+	case TOP_RIGHT:
+	case BOTTOM_LEFT:
+		while(1) {
+			currentNode = currentNode->topRight;
+			if (currentNode == NULL) {
+				break;
+			}
+			else if (currentNode->status != color) {
+				break;
+			}
+			else if (currentNode->status == color) {
+				numFoundInRow++;
+			}
+				if (numFoundInRow == 4) {
+				return numFoundInRow;
+			}
+		}
+		currentNode = nodeToProbe;
+		while(1) {
+			currentNode = currentNode->botLeft;
+			if (currentNode == NULL) {
+				break;
+			}
+			else if (currentNode->status != color) {
+				break;
+			}
+			else if (currentNode->status == color) {
+				numFoundInRow++;
+			}
+				if (numFoundInRow == 4) {
+				return numFoundInRow;
+			}
+		}
 		break;
 	}
-	//Add total
-	return numFoundInRow
+	return numFoundInRow;
 }
-int probeSurrounding(Node* board, int color, int column, int row = -1) {
-	//Probe horizontally, vertically, and both diagonals
+
+/*
+ *
+ */
+int probeSurrounding(Node* nodeToProbe, int color) {
 	int maxInARow = 1;
+	int currentRow = 1;
+
+	currentRow = probeDirection(nodeToProbe, color, BOTTOM);
+	if (currentRow > maxInARow) maxInARow = currentRow;
+	currentRow = probeDirection(nodeToProbe, color, RIGHT);
+	if (currentRow > maxInARow) maxInARow = currentRow;
+	currentRow = probeDirection(nodeToProbe, color, TOP_LEFT);
+	if (currentRow > maxInARow) maxInARow = currentRow;
+	currentRow = probeDirection(nodeToProbe, color, TOP_RIGHT);
+	if (currentRow > maxInARow) maxInARow = currentRow;
+
+	return maxInARow;
 }
-int checkVictory(Node*, int);
+
+/*
+ *
+ */
+int checkVictory(Node* nodeToCheck, int color) {
+	int maxInRow = probeSurrounding(nodeToCheck, color);
+	if (maxInRow >= 4) {
+		return GAME_WON;
+	}
+	else return RUNNING;
+}

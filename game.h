@@ -20,12 +20,12 @@ Node *createNode();
 
 // Game functions
 void runGame();
-void takeTurn(int, int, Node*, int);
-void placePiece(Node*, int, int);
+int takeTurn(int, int, Node*, int);
+Node *placePiece(Node*, int, int);
 //void endgame();
 Node *buildBoard(int, int);
 void testBoard(Node*);
 void printBoard(Node*, int);
 int probeDirection(Node*, int, int);
-int probeSurrounding(Node*, int, int);
+int probeSurrounding(Node*, int);
 int checkVictory(Node*, int);
