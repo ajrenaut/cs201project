@@ -2,7 +2,10 @@
 #include "enums.h"
 
 //TODO: Piece tracker array. Counts number of pieces in each column. Prevents overflow of a column.
-
+//TODO: Error catching (i.e. board size MINIMUM, bad dimensions, bad placement inputs, etc.
+//TODO: ncurses implementation
+//TODO: AI implementation
+//TODO: Series of match tracker (keep track of score between players)
 
  Node *createNode() {
 	Node *newNode = malloc(sizeof(Node));
