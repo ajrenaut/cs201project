@@ -309,6 +309,7 @@ int aiRoutine(Node **board, int width, int height) {
 	srand((unsigned) time(&timeSeed));
 	//Check for move
 	//Check to block
+	//Look for open sets of 3
 	//Pick random
 	int selectedColumn = 0;
 	selectedColumn = rand() % width;
