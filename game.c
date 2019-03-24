@@ -6,28 +6,18 @@
 //TODO: ncurses implementation
 //TODO: AI implementation
 //TODO: Series of match tracker (keep track of score between players)
+//TODO: Clean up ENUMS
+//TODO: piece counter (track # of pieces, tie game if board fills but no winner.
 
- Node *createNode() {
-	Node *newNode = malloc(sizeof(Node));
-	newNode->status = EMPTY;
+//Error catching function: https://stackoverflow.com/questions/4072190/check-if-input-is-integer-type-in-c
 
-	newNode->top = NULL;
-	newNode->topRight = NULL;
-	newNode->right = NULL;
-	newNode->botRight = NULL;
-	newNode->bottom = NULL;
-	newNode->botLeft = NULL;
-	newNode->left = NULL;
-	newNode->topLeft = NULL;
-
-	return newNode;
-}
 
 void runGame() {
 
 	int boardWidth, boardHeight, gameMode;
 	int playerOne, playerTwo;
-	Node *board;
+	Node **board;
+	int *piecesInColumnTracker;
 
 	printf("Welcome to Connect Four! Please select game mode.\n");
 	printf("Enter 1 to play against the AI, or 2 to play against another player.");
@@ -43,6 +33,7 @@ void runGame() {
 		break;
 	}
 
+	//Board dimensions must be 4x4 or greater to make game playable.
 	printf("Okay! Please enter board dimensions: \n");
 	printf("Board width: ");
 	scanf("%d", &boardWidth);
@@ -52,19 +43,19 @@ void runGame() {
 
 	board = buildBoard(boardWidth, boardHeight);
 
-	printBoard(board, boardWidth);
+	printBoard(board, boardWidth, boardHeight);
 	int gameStatus = RUNNING;
 	int turnCounter = 0;
 	while(gameStatus == RUNNING) {
 		if (turnCounter % 2 == 0) {
-			gameStatus = takeTurn(RED, playerOne, board, boardWidth);
+			gameStatus = takeTurn(RED, playerOne, board, boardWidth, boardHeight);
 			turnCounter++;
 		}
 		else if (turnCounter % 2 == 1) {
-			gameStatus = takeTurn(BLUE, playerTwo, board, boardWidth);
+			gameStatus = takeTurn(BLUE, playerTwo, board, boardWidth, boardHeight);
 			turnCounter++;
 		}
-		printBoard(board, boardWidth);
+		printBoard(board, boardWidth, boardHeight);
 	}
 
 	switch (gameStatus) {
@@ -78,57 +69,33 @@ void runGame() {
 	return;
 }
 
-Node* buildBoard(int width, int height) {
-	Node *bottomLeftNode;
-	Node *startOfPreviousRow;
+
+/*
+ * Because the graph of the board is guaranteed to be a rectangular grid, the
+ * board is generated and stored as a 2D array of the occupancies. Adjacent
+ * nodes can easily be calculated as needed by moving 1 index in a direction
+ * (or two in the case of diagonals).
+ */
+Node** buildBoard(int width, int height) {
+	Node **board = (Node **)malloc(height * sizeof(Node*));
 	for (int i = 0; i < height; i++) {
-		Node *startOfNewRow = createNode();
-		Node *currentNode = startOfNewRow;
-		for (int j = 0; j < width-1 ; j++) {
-			Node *nextNode = createNode();
-			currentNode->right = nextNode;
-			nextNode->left = currentNode;
-			currentNode = nextNode;
+		board[i] = (Node *)malloc(width * sizeof(Node));
+	}
+
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			board[i][j].status = EMPTY;
 		}
-		if (i > 0) {
-			Node *currentUpper = startOfNewRow;
-			Node *currentLower = startOfPreviousRow;
-			for (Node *currentZipNode = currentUpper; currentZipNode != NULL; currentZipNode = currentZipNode->right) {
-				currentUpper->bottom = currentLower;
-				currentUpper->botLeft = currentLower->left;
-				currentUpper->botRight = currentLower->right;
-
-				currentLower->top = currentUpper;
-				currentLower->topLeft = currentUpper->left;
-				currentLower->topRight = currentUpper->right;
-
-				currentUpper = currentUpper->right;
-				currentLower = currentLower->right;
-			}
-		}
-		startOfPreviousRow = startOfNewRow;
 	}
 
-	bottomLeftNode = startOfPreviousRow;
-	while(bottomLeftNode->left) {
-		bottomLeftNode = bottomLeftNode->left;
-	}
-	while(bottomLeftNode->bottom) {
-		bottomLeftNode = bottomLeftNode->bottom;
-	}
-	return bottomLeftNode;
+	return board;
 }
 
-void printBoard(Node *board, int width) {
-	int boardWidth = width;
-	Node *topLeft = board;
-	while (topLeft->top) {
-		topLeft = topLeft->top;
-	}
-	for (Node *curRow = topLeft; curRow != NULL ; curRow = curRow->bottom) {
+void printBoard(Node **board, int width, int height) {
+	for (int i = 0; i < height; i++) {
 		printf("|");
-		for (Node *curNode = curRow; curNode != NULL; curNode = curNode->right) {
-			switch (curNode->status) {
+		for (int j = 0; j < width; j++) {
+			switch (board[i][j].status) {
 				case EMPTY:
 					printf(" O |");
 					break;
@@ -143,7 +110,7 @@ void printBoard(Node *board, int width) {
 		printf("\n\n");
 	}
 	printf("|");
-	for (int i = 0; i < boardWidth; i++) {
+	for (int i = 0; i < width; i++) {
 		printf(" %d |", i+1);
 	}
 	printf("\n\n");
@@ -151,7 +118,7 @@ void printBoard(Node *board, int width) {
 	return;
 }
 
-int takeTurn(int color, int playerType, Node *board, int width) {
+int takeTurn(int color, int playerType, Node **board, int width, int height) {
 	char playerColorString[4];
 	switch (color) {
 	case RED :
@@ -164,21 +131,30 @@ int takeTurn(int color, int playerType, Node *board, int width) {
 	printf("\n%s's player's turn!", playerColorString);
 
 	int boardWidth = width;
+	int boardHeight = height;
 	int columnNum = 0;
+	int rowNum = 0;
+	int newGameStatus = 0;
 	switch (playerType) {
 	case PLAYER :
 		printf("\nEnter a column number between 1 and %d to place a piece.", boardWidth);
 		printf("\nColumn: ");
 		scanf("%d", &columnNum);
-		while (columnNum < 1 || columnNum > boardWidth) {
-			printf("\n\nERROR: Number must be between 1 and %d. Try again.", boardWidth);
+
+		// Check to see if the column entered exists, and has an empty space.
+		while ((columnNum < 1) || (columnNum > boardWidth)
+				|| (board[0][columnNum-1].status != EMPTY)) {
+			printf("\n\nERROR: Number must be between 1 and %d, and the column"
+					" must contain at least one empty space. Try again.\n", boardWidth);
 			printf("Column: ");
 			scanf("%d", &columnNum);
 		}
-		printf("\n%s places a piece in column %d", playerColorString, columnNum);
-		Node *placedPiece = placePiece(board, color, columnNum);
-		int newGameStatus = checkVictory(placedPiece, color);
-		if (newGameStatus == GAME_WON) {
+
+		printf("\n%s places a piece in column %d.\n\n", playerColorString, columnNum);
+		columnNum--;
+		rowNum = placePiece(board, color, columnNum, height);
+		newGameStatus = checkVictory(board, color, columnNum, rowNum, boardWidth, boardHeight);
+		if (newGameStatus == GAME_OVER) {
 			switch (color) {
 			case RED :
 				return RED_WIN;
@@ -198,185 +174,143 @@ int takeTurn(int color, int playerType, Node *board, int width) {
 		 * Check for victory
 		 * Return game over if game is won, else break
 		 */
+
+		columnNum = aiRoutine(board, width, height);
+		rowNum = placePiece(board, color, columnNum, height);
+		newGameStatus = checkVictory(board, color, columnNum, rowNum, boardWidth, boardHeight);
+		if (newGameStatus == GAME_OVER) {
+			switch (color) {
+			case RED :
+				return RED_WIN;
+				break;
+			case BLUE :
+				return BLUE_WIN;
+				break;
+			}
+		}
 		break;
 	}
 	return RUNNING;
 }
 
-Node* placePiece(Node *board, int color, int column) {
-	Node *selectedNode = board;
-
-	for (int i = 1; i < column; i++) {
-		selectedNode = selectedNode->right;
+int placePiece(Node **board, int color, int column, int height) {
+	for (int rowNum = height-1; rowNum >= 0; rowNum--) {
+		if (board[rowNum][column].status == EMPTY) {
+			board[rowNum][column].status = color;
+			return rowNum;
+		}
 	}
-
-	while (selectedNode->status != EMPTY) {
-		selectedNode = selectedNode->top;
-	}
-
-	selectedNode->status = color;
-	return selectedNode;
+	return -1;
 }
 
 /*
- * Takes a node, the player's color, and
+ * Searches a node for lines of four by searching in a manner similar to a BFS.
+ * The number of pieces in each straight line (upper diagonal, lower diagonal,
+ * vertically, horizontally) is counted, and if there are four in a row, then
+ * the function returns that the game is won. Otherwise, the game continues.
  */
-int probeDirection(Node* nodeToProbe, int color, int direction) {
-	int numFoundInRow = 1;
-	Node *currentNode = nodeToProbe;
-	switch (direction) {
-	case RIGHT :
-	case LEFT :
-		while(1) {
-			currentNode = currentNode->right;
-			if (currentNode == NULL) {
-				break;
-			}
-			else if (currentNode->status != color) {
-				break;
-			}
-			else if (currentNode->status == color) {
-				numFoundInRow++;
-			}
+int checkVictory(Node **board, int color, int column, int row, int boardWidth, int boardHeight) {
+	int upperDiagFound = 1, lowerDiagFound = 1, verticalFound = 1, horizontalFound = 1;
+	int distance = 1;
 
-			if (numFoundInRow == 4) {
-				return numFoundInRow;
-			}
+	while (row+distance < boardHeight) {
+		if (color == searchDirection(board, row, column, distance, 0)) {
+			verticalFound++;
 		}
-		currentNode = nodeToProbe;
-		while(1) {
-			currentNode = currentNode->left;
-				if (currentNode == NULL) {
-					break;
-				}
-				else if (currentNode->status != color) {
-					break;
-				}
-				else if (currentNode->status == color) {
-					numFoundInRow++;
-				}
-
-				if (numFoundInRow == 4) {
-					return numFoundInRow;
-				}
-		}
-		break;
-	case TOP:
-	case BOTTOM:
-		while(1) {
-			currentNode = currentNode->bottom;
-			if (currentNode == NULL) {
-				break;
-			}
-			else if (currentNode->status != color) {
-				break;
-			}
-			else if (currentNode->status == color) {
-				numFoundInRow++;
-			}
-			if (numFoundInRow == 4) {
-				return numFoundInRow;
-			}
-		}
-		break;
-	case TOP_LEFT:
-	case BOTTOM_RIGHT:
-		while(1) {
-			currentNode = currentNode->topLeft;
-			if (currentNode == NULL) {
-				break;
-			}
-			else if (currentNode->status != color) {
-				break;
-			}
-			else if (currentNode->status == color) {
-				numFoundInRow++;
-			}
-				if (numFoundInRow == 4) {
-				return numFoundInRow;
-			}
-		}
-		currentNode = nodeToProbe;
-		while(1) {
-			currentNode = currentNode->botRight;
-			if (currentNode == NULL) {
-				break;
-			}
-			else if (currentNode->status != color) {
-				break;
-			}
-			else if (currentNode->status == color) {
-				numFoundInRow++;
-			}
-				if (numFoundInRow == 4) {
-				return numFoundInRow;
-			}
-		}
-		break;
-	case TOP_RIGHT:
-	case BOTTOM_LEFT:
-		while(1) {
-			currentNode = currentNode->topRight;
-			if (currentNode == NULL) {
-				break;
-			}
-			else if (currentNode->status != color) {
-				break;
-			}
-			else if (currentNode->status == color) {
-				numFoundInRow++;
-			}
-				if (numFoundInRow == 4) {
-				return numFoundInRow;
-			}
-		}
-		currentNode = nodeToProbe;
-		while(1) {
-			currentNode = currentNode->botLeft;
-			if (currentNode == NULL) {
-				break;
-			}
-			else if (currentNode->status != color) {
-				break;
-			}
-			else if (currentNode->status == color) {
-				numFoundInRow++;
-			}
-				if (numFoundInRow == 4) {
-				return numFoundInRow;
-			}
-		}
-		break;
+		if (verticalFound == 4) return GAME_OVER;
+		distance++;
 	}
-	return numFoundInRow;
+	distance = 1;
+
+	while (row+distance < boardHeight && column+distance < boardWidth) {
+		if (color == searchDirection(board, row, column, distance, distance)) {
+			lowerDiagFound++;
+		}
+		else break;
+		if (lowerDiagFound == 4) return GAME_OVER;
+		distance++;
+	}
+	distance = 1;
+
+	while (column+distance < boardWidth) {
+		if (color == searchDirection(board, row, column, 0, distance)) {
+			horizontalFound++;
+		}
+		else break;
+		if (horizontalFound == 4) return GAME_OVER;
+		distance++;
+	}
+	distance = 1;
+
+	while (row-distance >= 0 && column+distance < boardWidth) {
+		if (color == searchDirection(board, row, column, -distance, distance)) {
+			upperDiagFound++;
+		}
+		else break;
+		if (upperDiagFound == 4) return GAME_OVER;
+		distance++;
+	}
+	distance = 1;
+
+	while (row-distance >= 0) {
+		if (color == searchDirection(board, row, column, -distance, 0)) {
+			verticalFound++;
+		}
+		else break;
+		if (verticalFound == 4) return GAME_OVER;
+		distance++;
+	}
+	distance = 1;
+
+	while (row-distance >= 0 && column-distance >= 0) {
+		if (color == searchDirection(board, row, column, -distance, -distance)) {
+			lowerDiagFound++;
+		}
+		else break;
+		if (lowerDiagFound == 4) return GAME_OVER;
+		distance++;
+	}
+	distance = 1;
+
+	while (column-distance >= 0) {
+		if (color == searchDirection(board, row, column, 0, -distance)) {
+			horizontalFound++;
+		}
+		else break;
+		if (horizontalFound == 4) return GAME_OVER;
+		distance++;
+	}
+	distance = 1;
+
+	while (row+distance < boardHeight && column-distance >= 0) {
+		if (color == searchDirection(board, row, column, distance, -distance)) {
+			upperDiagFound++;
+		}
+		else break;
+		if (upperDiagFound == 4) return GAME_OVER;
+		distance++;
+	}
+
+	return RUNNING;
+}
+
+
+int searchDirection(Node **board, int row, int column, int vertDist, int horizDist) {
+	int foundStatus = board[row+vertDist][column+horizDist].status;
+	return foundStatus;
 }
 
 /*
- *
+ * Ai code
  */
-int probeSurrounding(Node* nodeToProbe, int color) {
-	int maxInARow = 1;
-	int currentRow = 1;
 
-	currentRow = probeDirection(nodeToProbe, color, BOTTOM);
-	if (currentRow > maxInARow) maxInARow = currentRow;
-	currentRow = probeDirection(nodeToProbe, color, RIGHT);
-	if (currentRow > maxInARow) maxInARow = currentRow;
-	currentRow = probeDirection(nodeToProbe, color, TOP_LEFT);
-	if (currentRow > maxInARow) maxInARow = currentRow;
-	currentRow = probeDirection(nodeToProbe, color, TOP_RIGHT);
-	if (currentRow > maxInARow) maxInARow = currentRow;
-
-	return maxInARow;
-}
-
-/*
- *
- */
-int checkVictory(Node* nodeToCheck, int color) {
-	int maxInRow = probeSurrounding(nodeToCheck, color);
-	if (maxInRow >= 4) {
-		return GAME_WON;
-	}
-	else return RUNNING;
+int aiRoutine(Node **board, int width, int height) {
+	time_t timeSeed;
+	srand((unsigned) time(&timeSeed));
+	//Check for move
+	//Check to block
+	//Pick random
+	int selectedColumn = 0;
+	selectedColumn = rand() % width;
+	return selectedColumn;
 }
