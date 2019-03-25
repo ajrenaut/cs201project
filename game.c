@@ -2,10 +2,12 @@
 #include "enums.h"
 
 //TODO: Error catching (i.e. board size MINIMUM, bad dimensions, bad placement inputs, etc.
-//TODO: AI implementation
+//TODO: AI implementation - Fix ai "dumb move stopper"
 //TODO: Series of match tracker (keep track of score between players)
-
+//TODO: Minmaxer AI: Recursive function, variable depth. Simulate alternating moves and add up a total to determine best move.
+//TODO: _OR_ Make AI try to block 3 in a rows as well.
 //Error catching function: https://stackoverflow.com/questions/4072190/check-if-input-is-integer-type-in-c
+//TODO: Makefile and tutorial video.
 
 
 int runGame(int gameMode, int width, int height) {
