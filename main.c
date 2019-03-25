@@ -35,11 +35,17 @@ int main() {
 				" become unwieldy or awkward.\n");
 	}
 	printf("Board height: ");
-	scanf("%d", &boardHeight);
-	while(boardHeight < 4) {
-		printf("\nBoard height should be 4 or greater to ensure a winnable game.\n");
-		printf("Board height: ");
-		scanf("%d", &boardHeight);
+	boardHeight = readInt();
+	while(boardHeight == -1 || boardHeight < 4) {
+		if (boardHeight == -1) {
+			printf("Input not recognized. Please enter a positive integer.\n");
+			printf("Board height: ");
+		}
+		else if (boardHeight < 4 && boardHeight != -2) {
+			printf("Board height should be 4 or greater to ensure a winnable game.\n");
+			printf("Board height: ");
+		}
+		boardHeight = readInt();
 	}
 	if (boardHeight >= 10) {
 		printf("WARNING: Heights of 10 or greater may cause the display to"

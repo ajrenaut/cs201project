@@ -349,3 +349,34 @@ int aiRoutine(Node **board, int width, int height) {
 	free(enabledMoveSpaces);
 	return selectedColumn;
 }
+
+/*
+ * This function is used to filter out bad inputs and read integers. Source:
+ * https://stackoverflow.com/questions/4072190/check-if-input-is-integer-type-in-c
+ */
+int readInt() {
+	char s[80];
+	int valid = 0;
+	fgets (s, sizeof(s), stdin);
+	int len = strlen(s);
+	while (len > 0 && isspace(s[len-1])) len--; // Removes trailing whitespace
+	if (len==0) {
+		return -2; // -2 here means that an empty string was read.
+	}
+	if (len > 0) {
+		valid = 1;
+		for (int i = 0; i < len; ++i) {
+			if (!isdigit(s[i])) {
+				valid = 0;
+				break;
+			}
+		}
+	}
+
+	// -1 is never a valid input so it is used to relay that the input was bad
+	if (!valid) return -1;
+	else {
+		int intFound = atoi(s);
+		return intFound;
+	}
+}

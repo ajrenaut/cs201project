@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 typedef struct _node {
 	int status;
@@ -19,3 +20,4 @@ void printBoard(Node**, int, int);
 int checkVictory(Node **, int, int, int, int, int);
 int searchDirection(Node **, int, int , int , int);
 int aiRoutine(Node **, int, int);
+int readInt();
