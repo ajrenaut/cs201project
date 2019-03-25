@@ -9,7 +9,7 @@ typedef struct _node {
 
 
 // Game functions
-void runGame();
+int runGame(int, int, int);
 int takeTurn(int, int, Node **, int, int);
 int placePiece(Node **, int, int, int);
 //void endgame();

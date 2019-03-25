@@ -1,74 +1,44 @@
 #include "game.h"
 #include "enums.h"
 
-//TODO: Piece tracker array. Counts number of pieces in each column. Prevents overflow of a column.
 //TODO: Error catching (i.e. board size MINIMUM, bad dimensions, bad placement inputs, etc.
-//TODO: ncurses implementation
 //TODO: AI implementation
 //TODO: Series of match tracker (keep track of score between players)
-//TODO: Clean up ENUMS
-//TODO: piece counter (track # of pieces, tie game if board fills but no winner.
 
 //Error catching function: https://stackoverflow.com/questions/4072190/check-if-input-is-integer-type-in-c
 
 
-void runGame() {
-
-	int boardWidth, boardHeight, gameMode;
+int runGame(int gameMode, int width, int height) {
 	int playerOne, playerTwo;
-	Node **board;
-	int *piecesInColumnTracker;
+	Node **board = buildBoard(width, height);
 
-	printf("Welcome to Connect Four! Please select game mode.\n");
-	printf("Enter 1 to play against the AI, or 2 to play against another player.");
-	printf("Game mode: ");
-	scanf("%d", &gameMode);
 	playerOne = PLAYER;
-	switch (gameMode) {
-	case VS_AI :
-		playerTwo = AI;
-		break;
-	case VS_PLAYER :
-		playerTwo = PLAYER;
-		break;
-	}
-
-	//Board dimensions must be 4x4 or greater to make game playable.
-	printf("Okay! Please enter board dimensions: \n");
-	printf("Board width: ");
-	scanf("%d", &boardWidth);
-	printf("Board height: ");
-	scanf("%d", &boardHeight);
-	printf("\nThe board will be %d x %d.\n\n", boardWidth, boardHeight);
-
-	board = buildBoard(boardWidth, boardHeight);
-
-	printBoard(board, boardWidth, boardHeight);
+	playerTwo = gameMode;
+	printBoard(board, width, height);
 	int gameStatus = RUNNING;
 	int turnCounter = 0;
 	while(gameStatus == RUNNING) {
+		if (turnCounter >= (width * height)) {
+			gameStatus = GAME_TIED;
+			break;
+		}
 		if (turnCounter % 2 == 0) {
-			gameStatus = takeTurn(RED, playerOne, board, boardWidth, boardHeight);
+			gameStatus = takeTurn(RED, playerOne, board, width, height);
 			turnCounter++;
 		}
 		else if (turnCounter % 2 == 1) {
-			gameStatus = takeTurn(BLUE, playerTwo, board, boardWidth, boardHeight);
+			gameStatus = takeTurn(BLUE, playerTwo, board, width, height);
 			turnCounter++;
 		}
-		printBoard(board, boardWidth, boardHeight);
+		printBoard(board, width, height);
 	}
 
-	switch (gameStatus) {
-	case RED_WIN :
-		printf("RED WINS!");
-		break;
-	case BLUE_WIN :
-		printf("BLUE WINS!");
-		break;
+	for (int i = 0; i < height; i++) {
+		free(board[i]);
 	}
-	return;
+	free(board);
+	return gameStatus;
 }
-
 
 /*
  * Because the graph of the board is guaranteed to be a rectangular grid, the
@@ -110,11 +80,14 @@ void printBoard(Node **board, int width, int height) {
 		printf("\n\n");
 	}
 	printf("|");
+
+	// Formatting of the bottom row of numbers varies to accommodate large boards
 	for (int i = 0; i < width; i++) {
-		printf(" %d |", i+1);
+		if (i < 9) printf(" %d |", i+1);
+		else if (i < 99) printf("%d |", i+1);
+		else if (i < 999) printf("%d|", i+1);
 	}
 	printf("\n\n");
-
 	return;
 }
 
@@ -128,7 +101,7 @@ int takeTurn(int color, int playerType, Node **board, int width, int height) {
 		strcpy(playerColorString, "BLUE");
 		break;
 	}
-	printf("\n%s's player's turn!", playerColorString);
+	printf("\n%s's player's turn!\n", playerColorString);
 
 	int boardWidth = width;
 	int boardHeight = height;
@@ -166,18 +139,11 @@ int takeTurn(int color, int playerType, Node **board, int width, int height) {
 		}
 		break;
 	case AI :
-		// TODO: AI Turn Steps
-		/*
-		 * Run ai option weighing routine.
-		 * Generate deviation chance
-		 * Place piece
-		 * Check for victory
-		 * Return game over if game is won, else break
-		 */
-
 		columnNum = aiRoutine(board, width, height);
 		rowNum = placePiece(board, color, columnNum, height);
 		newGameStatus = checkVictory(board, color, columnNum, rowNum, boardWidth, boardHeight);
+		printf("\n%s places a piece in column %d.\n\n", playerColorString, columnNum+1);
+
 		if (newGameStatus == GAME_OVER) {
 			switch (color) {
 			case RED :
@@ -217,6 +183,7 @@ int checkVictory(Node **board, int color, int column, int row, int boardWidth, i
 		if (color == searchDirection(board, row, column, distance, 0)) {
 			verticalFound++;
 		}
+		else break;
 		if (verticalFound == 4) return GAME_OVER;
 		distance++;
 	}
@@ -307,11 +274,76 @@ int searchDirection(Node **board, int row, int column, int vertDist, int horizDi
 int aiRoutine(Node **board, int width, int height) {
 	time_t timeSeed;
 	srand((unsigned) time(&timeSeed));
-	//Check for move
-	//Check to block
-	//Look for open sets of 3
-	//Pick random
 	int selectedColumn = 0;
+	int *enabledMoveSpaces = malloc(width*sizeof(int));
+	int possibleMoves = width;
+	for (int i = 0; i < width; i++) {
+		if (board[0][i].status == EMPTY) {
+			enabledMoveSpaces[i] = 1;
+		}
+		else enabledMoveSpaces[i] = 0;
+	}
+
+	//First check to see if the AI can win in one move.
+	for (int column = 0; column < width; column++) {
+		for (int row = height-1; row >= 0; row--) {
+			if (board[row][column].status == EMPTY) {
+				if (checkVictory(board, BLUE, column, row, width, height) == GAME_OVER) {
+					free(enabledMoveSpaces);
+					return column;
+				}
+			}
+		}
+	}
+
+	//Check to see if the AI can prevent an opponent's win by making a move.
+	for (int column = 0; column < width; column++) {
+		for (int row = height-1; row >= 0; row--) {
+			if (board[row][column].status == EMPTY) {
+				if (checkVictory(board, RED, column, row, width, height) == GAME_OVER) {
+					free(enabledMoveSpaces);
+					return column;
+				}
+			}
+		}
+	}
+
+	// Prevent the AI from making "bad" moves by filtering out moves that would
+	// immediately enable an opponent's victory. A "bad move" is switched from
+	// 1 to 0.
+	for (int column = 0; column < width; column++) {
+		for (int row = height-1; row > 0; row--) {
+			if (board[row-1][column].status == EMPTY) {
+				if (checkVictory(board, RED, column, row-1, width, height) == GAME_OVER) {
+					enabledMoveSpaces[column] = 0;
+					possibleMoves--;
+				}
+			}
+		}
+	}
+
+	if (possibleMoves > 0) {
+		selectedColumn = rand() % width;
+		while (enabledMoveSpaces[selectedColumn] == 0) {
+			selectedColumn = rand() % width;
+		}
+		free(enabledMoveSpaces);
+		return selectedColumn;
+	}
+
+	// Select a move at random from the remaining list of moves.
+	// The AI has no safe moves left, so all moves are re-considered and one is
+	// picked at random.
+	for (int i = 0; i < width; i++) {
+		if (board[0][i].status == EMPTY) {
+			enabledMoveSpaces[i] = 1;
+		}
+	}
 	selectedColumn = rand() % width;
+	while (enabledMoveSpaces[selectedColumn] == 0) {
+		selectedColumn = rand() % width;
+	}
+
+	free(enabledMoveSpaces);
 	return selectedColumn;
 }
