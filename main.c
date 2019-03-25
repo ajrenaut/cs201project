@@ -11,7 +11,17 @@ int main() {
 	printf("Welcome to Connect Four! Please select game mode.\n");
 	printf("Enter 1 to play against the AI, or 2 to play against another player.\n");
 	printf("Game mode: ");
-	scanf("%d", &gameMode);
+	gameMode = readInt();
+	while(gameMode <= 0 || gameMode > 2) {
+		// -2 is the error code meaning that an empty string was read. Anything else means
+		// that bad input was given.
+		if (gameMode != -2) {
+			printf("Input not recognized.\n"
+				   "Please enter 1 to play vs AI, or 2 to play against another player.\n");
+			printf("Game mode: ");
+		}
+		gameMode = readInt();
+	}
 
 	/*
 	 * Boards with dimensions smaller than 4x4 are often unwinnable as they
@@ -20,16 +30,20 @@ int main() {
 	 * are playable, but begin to display unpleasantly based on the size of
 	 * the terminal in which the game is run. These warning boundaries are
 	 * based on a standard 80x24 terminal.
-	 * TODO: Sufficiently large boards should prompt a warning.
 	 */
-	printf("Okay! Please enter board dimensions: \n");
+	printf("\nOkay! Please enter board dimensions: \n");
 	printf("Board width: ");
-	scanf("%d", &boardWidth);
-	while(boardWidth < 4) {
-		printf("\nBoard width should be 4 or greater to ensure a winnable game.\n");
-		printf("Board width: ");
-		scanf("%d", &boardWidth);
-	}
+	while(boardWidth == -1 || boardWidth < 4) {
+			if (boardWidth == -1) {
+				printf("Input not recognized. Please enter a positive integer.\n");
+				printf("Board width: ");
+			}
+			else if (boardWidth < 4 && boardWidth != -2) {
+				printf("Board width should be 4 or greater to ensure a winnable game.\n");
+				printf("Board width: ");
+			}
+			boardWidth = readInt();
+		}
 	if (boardWidth >= 20) {
 		printf("WARNING: Widths of 20 or greater may cause the display to"
 				" become unwieldy or awkward.\n");
@@ -94,8 +108,15 @@ int main() {
 			else if (strcmp(response,"Y")==0) {
 				printf("Enter 1 to play against the AI, or 2 to play against another player.\n");
 				printf("Game mode: ");
-				scanf("%d", &gameMode);
-
+				gameMode = readInt();
+				while(gameMode <= 0 || gameMode > 2) {
+					if (gameMode != -2) {
+						printf("Input not recognized.\n"
+							   "Please enter 1 to play vs AI, or 2 to play against another player.\n");
+						printf("Game mode: ");
+					}
+					gameMode = readInt();
+				}
 				// Here, the current win/loss/tie record is reset if the player
 				// decides to change his or her opponent from AI to human or
 				// vice versa.
@@ -104,21 +125,39 @@ int main() {
 					savedGameMode = gameMode;
 				}
 
-				// TODO: Sufficiently large boards should prompt a warning.
-				printf("Okay! Please enter board dimensions: \n");
+				printf("\nOkay! Please enter board dimensions: \n");
 				printf("Board width: ");
-				scanf("%d", &boardWidth);
-				while(boardWidth < 4) {
-					printf("\nBoard width should be 4 or greater to ensure a winnable game.\n");
-					printf("Board width: ");
-					scanf("%d", &boardWidth);
+				while(boardWidth == -1 || boardWidth < 4) {
+					if (boardWidth == -1) {
+						printf("Input not recognized. Please enter a positive integer.\n");
+						printf("Board width: ");
+					}
+					else if (boardWidth < 4 && boardWidth != -2) {
+						printf("Board width should be 4 or greater to ensure a winnable game.\n");
+						printf("Board width: ");
+					}
+					boardWidth = readInt();
+				}
+				if (boardWidth >= 20) {
+					printf("WARNING: Widths of 20 or greater may cause the display to"
+							" become unwieldy or awkward.\n");
 				}
 				printf("Board height: ");
-				scanf("%d", &boardHeight);
-				while(boardHeight < 4) {
-					printf("\nBoard height should be 4 or greater to ensure a winnable game.\n");
-					printf("Board height: ");
-					scanf("%d", &boardHeight);
+				boardHeight = readInt();
+				while(boardHeight == -1 || boardHeight < 4) {
+					if (boardHeight == -1) {
+						printf("Input not recognized. Please enter a positive integer.\n");
+						printf("Board height: ");
+					}
+					else if (boardHeight < 4 && boardHeight != -2) {
+						printf("Board height should be 4 or greater to ensure a winnable game.\n");
+						printf("Board height: ");
+					}
+					boardHeight = readInt();
+				}
+				if (boardHeight >= 10) {
+					printf("WARNING: Heights of 10 or greater may cause the display to"
+							" become unwieldy or awkward.\n");
 				}
 				printf("\nThe board will be %d x %d.\n\n", boardWidth, boardHeight);
 			}
