@@ -6,7 +6,7 @@ int main() {
 	int record[3] = {0, 0, 0};
 	int gameResult, gameMode, boardWidth, boardHeight;
 	int savedWidth, savedHeight, savedGameMode;
-	char response[1];
+	char response;
 
 	printf("Welcome to Connect Four! Please select game mode.\n");
 	printf("Enter 1 to play against the AI, or 2 to play against another player.\n");
@@ -33,6 +33,7 @@ int main() {
 	 */
 	printf("\nOkay! Please enter board dimensions: \n");
 	printf("Board width: ");
+	boardWidth = readInt();
 	while(boardWidth == -1 || boardWidth < 4) {
 			if (boardWidth == -1) {
 				printf("Input not recognized. Please enter a positive integer.\n");
@@ -47,6 +48,7 @@ int main() {
 	if (boardWidth >= 20) {
 		printf("WARNING: Widths of 20 or greater may cause the display to"
 				" become unwieldy or awkward.\n");
+		printf("It is recommended that you increase your window size if possible.\n");
 	}
 	printf("Board height: ");
 	boardHeight = readInt();
@@ -64,6 +66,7 @@ int main() {
 	if (boardHeight >= 10) {
 		printf("WARNING: Heights of 10 or greater may cause the display to"
 				" become unwieldy or awkward.\n");
+		printf("It is recommended that you increase your window size if possible.\n");
 	}
 	printf("\nThe board will be %d x %d.\n\n", boardWidth, boardHeight);
 	savedWidth = boardWidth;
@@ -86,26 +89,47 @@ int main() {
 			record[2]++;
 			break;
 		}
-		strcpy(response, "X");
 
-		//TODO: make input case insensitive
 		printf("The new record is: %d - %d - %d\n", record[0], record[1], record[2]);
 		printf("(Red wins - Blue wins - Ties)\n");
-		printf("\nPlay again using same settings?\n(Y/N):");
-		scanf("%s", response);
-		if (strcmp(response,"Y")==0) {
+		printf("\nPlay again using same settings?\nY / N:");
+		response = readChar();
+		while(response < 1 || (response != 'Y' && response != 'N')) {
+			if (response == -1) {
+				printf("Input not recognized.\n");
+				printf("Y / N: ");
+			}
+			else if (response != 'Y' || response != 'N') {
+				printf("Input not valid character.\n");
+				printf("Y / N: ");
+			}
+			response = readChar();
+		}
+
+		if (response == 'Y') {
 			printf("\nOkay! Setting up a new game.\n\n");
 			boardWidth = savedWidth;
 			boardHeight = savedHeight;
 		}
-		else if (strcmp(response,"N")==0) {
-			printf("\nPlay again with new settings?\n(Y/N):");
-			scanf("%s", response);
-			if (strcmp(response,"N")==0) {
+		else if (response == 'N') {
+			printf("\nPlay again with new settings?\nY / N:");
+			response = readChar();
+			while(response < 1 || (response != 'Y' && response != 'N')) {
+				if (response == -1) {
+					printf("Input not recognized.\n");
+					printf("Y / N: ");
+				}
+				else if (response != 'Y' || response != 'N') {
+					printf("Input not valid character.\n");
+					printf("Y / N: ");
+				}
+				response = readChar();
+			}
+			if (response == 'N') {
 				printf("\nThanks for playing!");
 				return 0;
 			}
-			else if (strcmp(response,"Y")==0) {
+			else if (response == 'Y') {
 				printf("Enter 1 to play against the AI, or 2 to play against another player.\n");
 				printf("Game mode: ");
 				gameMode = readInt();
@@ -127,6 +151,7 @@ int main() {
 
 				printf("\nOkay! Please enter board dimensions: \n");
 				printf("Board width: ");
+				boardWidth = readInt();
 				while(boardWidth == -1 || boardWidth < 4) {
 					if (boardWidth == -1) {
 						printf("Input not recognized. Please enter a positive integer.\n");
@@ -141,6 +166,7 @@ int main() {
 				if (boardWidth >= 20) {
 					printf("WARNING: Widths of 20 or greater may cause the display to"
 							" become unwieldy or awkward.\n");
+					printf("It is recommended that you increase your window size if possible.\n");
 				}
 				printf("Board height: ");
 				boardHeight = readInt();
@@ -158,6 +184,7 @@ int main() {
 				if (boardHeight >= 10) {
 					printf("WARNING: Heights of 10 or greater may cause the display to"
 							" become unwieldy or awkward.\n");
+					printf("It is recommended that you increase your window size if possible.\n");
 				}
 				printf("\nThe board will be %d x %d.\n\n", boardWidth, boardHeight);
 			}
