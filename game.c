@@ -1,12 +1,10 @@
 #include "game.h"
 #include "enums.h"
 
-//TODO: Error catching (i.e. board size MINIMUM, bad dimensions, bad placement inputs, etc.
-//TODO: AI implementation
-//TODO: Series of match tracker (keep track of score between players)
-
-//Error catching function: https://stackoverflow.com/questions/4072190/check-if-input-is-integer-type-in-c
-
+//TODO: AI implementation - Fix ai "dumb move stopper"
+//TODO: Minmaxer AI: Recursive function, variable depth. Simulate alternating moves and add up a total to determine best move.
+//TODO: _OR_ Make AI try to block 3 in a rows as well.
+//TODO: Makefile and tutorial video.
 
 int runGame(int gameMode, int width, int height) {
 	int playerOne, playerTwo;
@@ -70,10 +68,10 @@ void printBoard(Node **board, int width, int height) {
 					printf(" O |");
 					break;
 				case RED:
-					printf("(R)|");
+					printf("RED|");
 					break;
 				case BLUE:
-					printf("(B)|");
+					printf("BLU|");
 					break;
 			}
 		}
@@ -112,19 +110,24 @@ int takeTurn(int color, int playerType, Node **board, int width, int height) {
 	case PLAYER :
 		printf("\nEnter a column number between 1 and %d to place a piece.", boardWidth);
 		printf("\nColumn: ");
-		scanf("%d", &columnNum);
-
-		// Check to see if the column entered exists, and has an empty space.
-		while ((columnNum < 1) || (columnNum > boardWidth)
+		columnNum = readInt();
+		while(columnNum < 1 || columnNum > boardWidth
 				|| (board[0][columnNum-1].status != EMPTY)) {
-			printf("\n\nERROR: Number must be between 1 and %d, and the column"
-					" must contain at least one empty space. Try again.\n", boardWidth);
-			printf("Column: ");
-			scanf("%d", &columnNum);
+			if (columnNum < 1 && columnNum != -2) {
+				printf("Input not recognized.\n"
+						"Enter a column number between 1 and %d to place a piece.", boardWidth);
+				printf("\nColumn: ");
+			}
+			else if (board[0][columnNum-1].status != EMPTY) {
+				printf("That column is full.\n"
+						"Enter a column number between 1 and %d to place a piece.", boardWidth);
+				printf("\nColumn: ");
+			}
+			columnNum = readInt();
 		}
 
 		printf("\n%s places a piece in column %d.\n\n", playerColorString, columnNum);
-		columnNum--;
+		columnNum--; // Adjusting from 1 based indexing to 0 based indexing.
 		rowNum = placePiece(board, color, columnNum, height);
 		newGameStatus = checkVictory(board, color, columnNum, rowNum, boardWidth, boardHeight);
 		if (newGameStatus == GAME_OVER) {
@@ -261,16 +264,23 @@ int checkVictory(Node **board, int color, int column, int row, int boardWidth, i
 	return RUNNING;
 }
 
-
 int searchDirection(Node **board, int row, int column, int vertDist, int horizDist) {
 	int foundStatus = board[row+vertDist][column+horizDist].status;
 	return foundStatus;
 }
 
 /*
- * Ai code
+ * The AI follows a routine with the following priority:
+ * 1. Find a winning move. If there is one, take it.
+ * 2. Find a winning move for the opponent. If there is one, prevent it.
+ * 3. Rule out moves that would immediately enable a winning move for the opponent.
+ * 	  Choose from the remaining columns.
+ * 4. Choose a random column and accept defeat.
+ *
+ * There are more in-depth AI algorithms possible but the thinking here is that
+ * with a potential for extremely large board sizes, calculating many moves ahead
+ * could potentially make the time it takes for the AI to act very long.
  */
-
 int aiRoutine(Node **board, int width, int height) {
 	time_t timeSeed;
 	srand((unsigned) time(&timeSeed));
@@ -311,9 +321,12 @@ int aiRoutine(Node **board, int width, int height) {
 	// Prevent the AI from making "bad" moves by filtering out moves that would
 	// immediately enable an opponent's victory. A "bad move" is switched from
 	// 1 to 0.
+	// TODO: NOT WORKING
+	// Idea: print the array of considered moves.
+	// Print whether or not the ai exits in the 1st return or 2nd return
 	for (int column = 0; column < width; column++) {
 		for (int row = height-1; row > 0; row--) {
-			if (board[row-1][column].status == EMPTY) {
+			if (board[row][column].status == EMPTY && (row-1 >= 0)) {
 				if (checkVictory(board, RED, column, row-1, width, height) == GAME_OVER) {
 					enabledMoveSpaces[column] = 0;
 					possibleMoves--;
@@ -346,4 +359,62 @@ int aiRoutine(Node **board, int width, int height) {
 
 	free(enabledMoveSpaces);
 	return selectedColumn;
+}
+
+/*
+ * This function is used to filter out bad inputs and read integers. Source:
+ * https://stackoverflow.com/questions/4072190/check-if-input-is-integer-type-in-c
+ */
+int readInt() {
+	char s[80];
+	int valid = 0;
+	fgets (s, sizeof(s), stdin);
+	int len = strlen(s);
+	while (len > 0 && isspace(s[len-1])) len--; // Removes trailing whitespace
+	if (len==0) {
+		return -2; // -2 here means that an empty string was read.
+	}
+	if (len > 0) {
+		valid = 1;
+		for (int i = 0; i < len; ++i) {
+			if (!isdigit(s[i])) {
+				valid = 0;
+				break;
+			}
+		}
+	}
+
+	// -1 is never a valid input so it is used to relay that the input was bad
+	if (!valid) return -1;
+	else {
+		int intFound = atoi(s);
+		return intFound;
+	}
+}
+
+int readChar() {
+	char s[160];
+	int valid = 0;
+	fgets (s, sizeof(s), stdin);
+	int len = strlen(s);
+	while (len > 0 && isspace(s[len-1])) len--; // Removes trailing whitespace
+	if (len==0) {
+		return -2; // -2 here means that an empty string was read.
+	}
+	if (len > 0) {
+		valid = 1;
+		for (int i = 0; i < len; ++i) {
+			if (!isalpha(s[i])) {
+				valid = 0;
+				break;
+			}
+		}
+	}
+
+	// -1 is never a valid input so it is used to relay that the input was bad
+	if (!valid || len > 1) return -1;
+	else {
+		s[0] = toupper(s[0]);
+		return s[0];
+	}
 }
