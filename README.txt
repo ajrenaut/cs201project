@@ -20,7 +20,7 @@ a casual player.
 
 HOW TO USE:
 1. Compile the program using the included makefile.
-2. Run the connectfour executable from a terminal.
+2. Run the "connectfour" executable from a terminal.
 3. Follow the instructions as prompted. Legal inputs are specified and are
    limited to single integers or characters when applicable. For specifics:
    3a. Enter 1 to play against an AI, or 2 to play against another player.

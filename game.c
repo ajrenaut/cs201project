@@ -1,10 +1,7 @@
 #include "game.h"
 #include "enums.h"
 
-//TODO: AI implementation - Fix ai "dumb move stopper"
-//TODO: Minmaxer AI: Recursive function, variable depth. Simulate alternating moves and add up a total to determine best move.
-//TODO: _OR_ Make AI try to block 3 in a rows as well.
-//TODO: Makefile and tutorial video.
+//TODO: tutorial video.
 
 int runGame(int gameMode, int width, int height) {
 	int playerOne, playerTwo;
@@ -80,6 +77,7 @@ void printBoard(Node **board, int width, int height) {
 	printf("|");
 
 	// Formatting of the bottom row of numbers varies to accommodate large boards
+	//
 	for (int i = 0; i < width; i++) {
 		if (i < 9) printf(" %d |", i+1);
 		else if (i < 99) printf("%d |", i+1);
@@ -285,7 +283,7 @@ int aiRoutine(Node **board, int width, int height) {
 	time_t timeSeed;
 	srand((unsigned) time(&timeSeed));
 	int selectedColumn = 0;
-	int *enabledMoveSpaces = malloc(width*sizeof(int));
+	int *enabledMoveSpaces = (int*)malloc(width*sizeof(int));
 	int possibleMoves = width;
 	for (int i = 0; i < width; i++) {
 		if (board[0][i].status == EMPTY) {
@@ -309,11 +307,13 @@ int aiRoutine(Node **board, int width, int height) {
 	//Check to see if the AI can prevent an opponent's win by making a move.
 	for (int column = 0; column < width; column++) {
 		for (int row = height-1; row >= 0; row--) {
+			if (column >= width) break;
 			if (board[row][column].status == EMPTY) {
 				if (checkVictory(board, RED, column, row, width, height) == GAME_OVER) {
 					free(enabledMoveSpaces);
 					return column;
 				}
+				column++;
 			}
 		}
 	}
@@ -321,9 +321,6 @@ int aiRoutine(Node **board, int width, int height) {
 	// Prevent the AI from making "bad" moves by filtering out moves that would
 	// immediately enable an opponent's victory. A "bad move" is switched from
 	// 1 to 0.
-	// TODO: NOT WORKING
-	// Idea: print the array of considered moves.
-	// Print whether or not the ai exits in the 1st return or 2nd return
 	for (int column = 0; column < width; column++) {
 		for (int row = height-1; row > 0; row--) {
 			if (board[row][column].status == EMPTY && (row-1 >= 0)) {
@@ -356,7 +353,7 @@ int aiRoutine(Node **board, int width, int height) {
 	while (enabledMoveSpaces[selectedColumn] == 0) {
 		selectedColumn = rand() % width;
 	}
-
+	printf("had to pick a random spot");
 	free(enabledMoveSpaces);
 	return selectedColumn;
 }

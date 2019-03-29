@@ -1,5 +1,4 @@
 #include "game.h"
-#include "ai.h"
 #include "enums.h"
 
 int main() {
