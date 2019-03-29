@@ -353,7 +353,6 @@ int aiRoutine(Node **board, int width, int height) {
 	while (enabledMoveSpaces[selectedColumn] == 0) {
 		selectedColumn = rand() % width;
 	}
-	printf("had to pick a random spot");
 	free(enabledMoveSpaces);
 	return selectedColumn;
 }
