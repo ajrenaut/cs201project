@@ -1,7 +1,7 @@
 Author		: Alex Renaut
 Email		: ajrenaut@crimson.ua.edu
 Project		: Connect 4
-Video link	: N/A
+Video link	: https://youtu.be/d5Clew5sJ80
 GitHub link	: https://github.com/ajrenaut/cs201project
 git link	: https://github.com/ajrenaut/cs201project.git
 
