@@ -1,8 +1,6 @@
 #include "game.h"
 #include "enums.h"
 
-//TODO: tutorial video.
-
 int runGame(int gameMode, int width, int height) {
 	int playerOne, playerTwo;
 	Node **board = buildBoard(width, height);
