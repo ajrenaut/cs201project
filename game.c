@@ -313,7 +313,7 @@ int aiRoutine(Node **board, int width, int height) {
 					free(enabledMoveSpaces);
 					return column;
 				}
-				column++;
+				break;
 			}
 		}
 	}
