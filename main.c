@@ -91,7 +91,7 @@ int main() {
 
 		printf("The new record is: %d - %d - %d\n", record[0], record[1], record[2]);
 		printf("(Red wins - Blue wins - Ties)\n");
-		printf("\nPlay again using same settings?\nY / N:");
+		printf("\nPlay again using same settings?\nY / N: ");
 		response = readChar();
 		while(response < 1 || (response != 'Y' && response != 'N')) {
 			if (response == -1) {
@@ -111,7 +111,7 @@ int main() {
 			boardHeight = savedHeight;
 		}
 		else if (response == 'N') {
-			printf("\nPlay again with new settings?\nY / N:");
+			printf("\nPlay again with new settings?\nY / N: ");
 			response = readChar();
 			while(response < 1 || (response != 'Y' && response != 'N')) {
 				if (response == -1) {
