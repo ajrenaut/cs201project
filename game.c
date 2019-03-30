@@ -305,6 +305,7 @@ int aiRoutine(Node **board, int width, int height) {
 					free(enabledMoveSpaces);
 					return column;
 				}
+				row = -1;
 			}
 		}
 	}
@@ -318,7 +319,7 @@ int aiRoutine(Node **board, int width, int height) {
 					free(enabledMoveSpaces);
 					return column;
 				}
-				break;
+				row = -1;
 			}
 		}
 	}
