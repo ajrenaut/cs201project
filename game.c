@@ -88,7 +88,8 @@ void printBoard(Node **board, int width, int height) {
 }
 
 int takeTurn(int color, int playerType, Node **board, int width, int height) {
-	char playerColorString[4];
+	char playerColorString[5];
+
 	switch (color) {
 	case RED :
 		strcpy(playerColorString, "RED");
