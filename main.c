@@ -186,6 +186,8 @@ int main() {
 					printf("It is recommended that you increase your window size if possible.\n");
 				}
 				printf("\nThe board will be %d x %d.\n\n", boardWidth, boardHeight);
+				savedWidth = boardWidth;
+				savedHeight = boardHeight;
 			}
 		}
 	}

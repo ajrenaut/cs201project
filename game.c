@@ -125,6 +125,7 @@ int takeTurn(int color, int playerType, Node **board, int width, int height) {
 			else if (columnNum > boardWidth) {
 				printf("Column doesnt exist.\n"
 						"Enter a column number between 1 and %d to place a piece.", boardWidth);
+				printf("\nColumn: ");
 			}
 			columnNum = readInt();
 		}
