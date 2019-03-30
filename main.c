@@ -125,7 +125,7 @@ int main() {
 				response = readChar();
 			}
 			if (response == 'N') {
-				printf("\nThanks for playing!");
+				printf("\nThanks for playing!\n");
 				return 0;
 			}
 			else if (response == 'Y') {
